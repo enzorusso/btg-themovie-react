@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useScrollMemory } from './useScrollMemory'
 
-const MAX_RESTORE_ATTEMPTS = 20
+const RESTORE_TIMEOUT_MS = 2000
 
 export function useScrollRestoration(isReady: boolean) {
   const location = useLocation()
@@ -13,21 +13,33 @@ export function useScrollRestoration(isReady: boolean) {
     if (!isReady) return
 
     const target = getScroll(key) ?? 0
-    let attempts = 0
-    let frameId: number
+    const canReachTarget = () =>
+      document.documentElement.scrollHeight - window.innerHeight >= target
 
-    const tryRestore = () => {
-      attempts += 1
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-      if (maxScroll >= target || attempts >= MAX_RESTORE_ATTEMPTS) {
-        window.scrollTo(0, target)
-      } else {
-        frameId = requestAnimationFrame(tryRestore)
-      }
+    if (canReachTarget()) {
+      window.scrollTo(0, target)
+      return
     }
 
-    tryRestore()
-    return () => cancelAnimationFrame(frameId)
+    const observer = new ResizeObserver(() => {
+      if (canReachTarget()) {
+        cleanup()
+        window.scrollTo(0, target)
+      }
+    })
+    observer.observe(document.body)
+
+    const timeoutId = setTimeout(() => {
+      cleanup()
+      window.scrollTo(0, target)
+    }, RESTORE_TIMEOUT_MS)
+
+    function cleanup() {
+      observer.disconnect()
+      clearTimeout(timeoutId)
+    }
+
+    return cleanup
   }, [isReady, key, getScroll])
 
   useEffect(() => {

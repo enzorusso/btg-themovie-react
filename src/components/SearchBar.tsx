@@ -1,6 +1,6 @@
 import SearchIcon from '@mui/icons-material/Search'
 import { Button, InputAdornment, TextField } from '@mui/material'
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 export function SearchBar() {
@@ -27,7 +27,7 @@ export function SearchBar() {
     }
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault()
     const trimmed = value.trim()
     if (trimmed) {
