@@ -35,6 +35,10 @@ export function getPopularMovies() {
   return tmdbFetch<TmdbListResponse>('/movie/popular')
 }
 
+export function getTopRatedMovies() {
+  return tmdbFetch<TmdbListResponse>('/movie/top_rated')
+}
+
 export function searchMovies(query: string, page = 1) {
   return tmdbFetch<TmdbListResponse>('/search/movie', { query, page: String(page) })
 }
