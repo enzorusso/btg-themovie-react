@@ -13,12 +13,18 @@ export function SearchBar() {
 
   const [value, setValue] = useState(isSearchPage ? urlQuery : '')
 
-  // limpa ao chegar na home; sincroniza com a URL na tela de busca; em qualquer
-  // outra tela (ex.: detalhes do filme) mantém o que já estava digitado
-  if (isHome) {
-    if (value !== '') setValue('')
-  } else if (isSearchPage) {
-    if (value !== urlQuery) setValue(urlQuery)
+  // dispara só quando a ROTA muda (não a cada tecla digitada): limpa ao chegar
+  // na home, sincroniza com a URL na busca, e mantém o texto em qualquer outra
+  // tela (ex.: detalhes do filme)
+  const routeKey = `${location.pathname}?${urlQuery}`
+  const [lastRouteKey, setLastRouteKey] = useState(routeKey)
+  if (lastRouteKey !== routeKey) {
+    setLastRouteKey(routeKey)
+    if (isHome) {
+      setValue('')
+    } else if (isSearchPage) {
+      setValue(urlQuery)
+    }
   }
 
   const handleSubmit = (event: FormEvent) => {

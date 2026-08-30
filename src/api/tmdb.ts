@@ -4,10 +4,16 @@ const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 const BASE_URL = import.meta.env.VITE_TMDB_BASE_URL ?? 'https://api.themoviedb.org/3'
 const IMAGE_BASE_URL = import.meta.env.VITE_TMDB_IMAGE_BASE_URL ?? 'https://image.tmdb.org/t/p/'
 
-async function tmdbFetch<T>(path: string, params: Record<string, string> = {}): Promise<T> {
+async function tmdbFetch<T>(
+  path: string,
+  params: Record<string, string> = {},
+  { localized = true }: { localized?: boolean } = {},
+): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`)
   url.searchParams.set('api_key', API_KEY)
-  url.searchParams.set('language', 'pt-BR')
+  if (localized) {
+    url.searchParams.set('language', 'pt-BR')
+  }
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value)
   }
@@ -38,7 +44,7 @@ export function getMovieDetails(movieId: number) {
 }
 
 export function getMovieCredits(movieId: number) {
-  return tmdbFetch<Credits>(`/movie/${movieId}/credits`)
+  return tmdbFetch<Credits>(`/movie/${movieId}/credits`, {}, { localized: false })
 }
 
 export function getPosterUrl(path: string | null, size: 'w200' | 'w342' | 'w500' = 'w342') {
