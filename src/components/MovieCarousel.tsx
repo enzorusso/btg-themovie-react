@@ -47,7 +47,7 @@ export function MovieCarousel({ title, movies, onSelectMovie }: MovieCarouselPro
 
     centerOnMiddleSet()
     return () => cancelAnimationFrame(frameId)
-  }, [movies])
+  }, [movies, scrollKey, getScroll])
 
   useEffect(() => {
     const container = scrollRef.current

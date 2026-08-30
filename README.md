@@ -74,8 +74,8 @@ Como funciona:
 - `main.tsx` envolve tudo com `<BrowserRouter>`; `App.tsx` só declara os `<Route>` dentro de `<Routes>` e renderiza o `<Header>` fixo por fora (ele aparece em todas as rotas).
 - Cada página busca os próprios dados (`HomePage`, `SearchPage`, `MovieDetailsPage` têm seu próprio `useEffect` chamando `src/api/tmdb.ts`) e navega para as outras com `useNavigate` (ex.: clicar num card chama `navigate(`/filme/${id}`)`).
 - `SearchPage` lê/escreve `q` e `page` com `useSearchParams` — mudar de página na paginação ou pesquisar de novo só atualiza a URL, o componente reage à mudança.
-- Os botões "Voltar" (`BackButton`, usado em `SearchResults` e `MovieDetails`) chamam `navigate(-1)`, ou seja, voltam pro que realmente estava no histórico do navegador antes (não é um link fixo pra home).
-- `SearchBar` usa `useLocation`/`useSearchParams` pra saber se está em `/busca` e mostrar o `q` atual; fora dessa rota, o campo aparece vazio.
+- Não há botão "Voltar" em nenhuma tela — a navegação de volta é a nativa do navegador (gesto/botão voltar), e a logo "🎬 Catálogo" no `Header` é um `<Link to="/">`, sempre visível, que leva pra home de qualquer tela.
+- `SearchBar` usa `useLocation`/`useSearchParams` pra decidir o que mostrar no campo: limpa ao chegar na home, sincroniza com o `q` da URL na tela de busca, e **mantém o texto como estava** em qualquer outra tela (ex.: ao entrar nos detalhes de um filme vindo da busca, o campo continua com o termo buscado).
 
 ## Estrutura
 
@@ -84,14 +84,13 @@ src/
 ├── api/
 │   └── tmdb.ts             # fetch wrapper único para a TMDB (api_key, endpoints, URLs de imagem)
 ├── components/
-│   ├── Header.tsx           # logo + busca, fixo no topo
+│   ├── Header.tsx           # logo (link pra "/") + busca, fixo no topo
 │   ├── SearchBar.tsx        # input + botão "Buscar"
 │   ├── SearchResults.tsx    # grid de resultados da busca + paginação
 │   ├── UpcomingBanner.tsx   # banner de lançamentos com autoplay
 │   ├── MovieCarousel.tsx    # carrossel horizontal genérico (usado em "Populares")
 │   ├── MovieCard.tsx        # poster + título + nota, clicável
-│   ├── MovieDetails.tsx     # conteúdo da tela de detalhes (sinopse, elenco, etc.)
-│   └── BackButton.tsx       # botão "‹ Voltar" compartilhado
+│   └── MovieDetails.tsx     # conteúdo da tela de detalhes (sinopse, elenco, etc.)
 ├── context/
 │   ├── scrollMemoryContext.ts  # só o Context (sem componente) — Fast Refresh exige separação
 │   └── ScrollMemoryProvider.tsx  # Provider — guarda posições de scroll num Map em memória
@@ -124,3 +123,5 @@ src/
 - **Memória de scroll via Context.** `ScrollMemoryProvider` (em `App.tsx`, por fora das `<Routes>` — não desmonta ao navegar) guarda um `Map<string, number>` em memória, sem depender de nenhuma lib. Dois usos:
   - **Scroll vertical da página** (`useScrollRestoration`, usado em `HomePage`, `SearchPage` e `MovieDetailsPage`): a chave é `page:${location.key}` — o `location.key` do React Router é único por entrada do histórico e se repete quando você volta pra essa mesma entrada (é o mesmo mecanismo por trás do `<ScrollRestoration>` dos data routers). Isso separa naturalmente "navegação nova" (chave nunca vista → `getScroll` retorna `undefined` → rola pro topo) de "voltar" (chave já visitada → restaura a posição salva). A restauração só roda depois que os dados carregaram (`isReady`) e tenta de novo por até 20 frames até a página ficar alta o suficiente pra conter a posição salva — mesmo problema e mesma solução descritos no README da versão Angular.
   - **Scroll horizontal do carrossel** (dentro do próprio `MovieCarousel`, chave `carousel:${title}`): como o loop infinito sempre recentraliza no "conjunto do meio" da lista triplicada, o que é salvo não é o `scrollLeft` bruto (que muda a cada montagem), e sim o deslocamento relativo a esse centro (`scrollLeft - setWidth`). Ao remontar (voltando de um filme, por exemplo), a centralização inicial usa `setWidth + deslocamentoSalvo` em vez de só `setWidth`, então o carrossel volta pra onde estava.
+- **Sem botão "Voltar" — só navegação nativa.** Em vez de um botão próprio em cada tela (que só fazia `navigate(-1)`, duplicando o que o navegador já oferece), a volta é feita pelo gesto/botão nativo do navegador. Como ponto de saída sempre visível, a logo do `Header` virou um `<Link to="/">` — clicável em qualquer tela, sempre leva pra home.
+- **Campo de busca "lembra" o termo fora da tela de busca.** O valor do input não é mais "vazio sempre que a rota não é `/busca`" — ele só é limpo explicitamente ao chegar na home (`isHome`). Em qualquer outra tela (ex.: detalhes de um filme aberto a partir de um resultado de busca), o texto permanece como estava, já que o próprio `SearchBar` nunca desmonta (fica fora das `<Routes>`, dentro do `Header`) e simplesmente não mexe no `value` fora dos casos de "home" e "busca".

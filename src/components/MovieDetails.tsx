@@ -5,11 +5,9 @@ import { CircularProgress, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getMovieCredits, getMovieDetails, getPosterUrl, getProfileUrl } from '../api/tmdb'
 import type { CastMember, MovieDetails as MovieDetailsType } from '../types/movie'
-import { BackButton } from './BackButton'
 
 interface MovieDetailsProps {
   movieId: number
-  onBack: () => void
 }
 
 const MAX_CAST_MEMBERS = 10
@@ -20,7 +18,7 @@ function formatDate(isoDate: string) {
   return `${day}/${month}/${year}`
 }
 
-export function MovieDetails({ movieId, onBack }: MovieDetailsProps) {
+export function MovieDetails({ movieId }: MovieDetailsProps) {
   const [details, setDetails] = useState<MovieDetailsType | null>(null)
   const [director, setDirector] = useState<string | null>(null)
   const [cast, setCast] = useState<CastMember[]>([])
@@ -59,8 +57,6 @@ export function MovieDetails({ movieId, onBack }: MovieDetailsProps) {
 
   return (
     <section className="mt-6">
-      <BackButton onClick={onBack} />
-
       {isLoading && (
         <div className="flex justify-center py-16">
           <CircularProgress />

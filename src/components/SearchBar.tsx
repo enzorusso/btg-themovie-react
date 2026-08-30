@@ -7,15 +7,18 @@ export function SearchBar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
+  const isHome = location.pathname === '/'
   const isSearchPage = location.pathname === '/busca'
-  const urlQuery = isSearchPage ? (searchParams.get('q') ?? '') : ''
+  const urlQuery = searchParams.get('q') ?? ''
 
-  const [value, setValue] = useState(urlQuery)
-  const [syncedQuery, setSyncedQuery] = useState(urlQuery)
+  const [value, setValue] = useState(isSearchPage ? urlQuery : '')
 
-  if (syncedQuery !== urlQuery) {
-    setSyncedQuery(urlQuery)
-    setValue(urlQuery)
+  // limpa ao chegar na home; sincroniza com a URL na tela de busca; em qualquer
+  // outra tela (ex.: detalhes do filme) mantém o que já estava digitado
+  if (isHome) {
+    if (value !== '') setValue('')
+  } else if (isSearchPage) {
+    if (value !== urlQuery) setValue(urlQuery)
   }
 
   const handleSubmit = (event: FormEvent) => {

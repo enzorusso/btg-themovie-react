@@ -1,6 +1,5 @@
 import { CircularProgress, Pagination, Typography } from '@mui/material'
 import type { Movie } from '../types/movie'
-import { BackButton } from './BackButton'
 import { MovieCard } from './MovieCard'
 
 interface SearchResultsProps {
@@ -12,7 +11,6 @@ interface SearchResultsProps {
   totalPages: number
   onPageChange: (page: number) => void
   onSelectMovie: (movieId: number) => void
-  onBack: () => void
 }
 
 // TMDB limita a paginação a 500 páginas, independentemente do total de resultados
@@ -27,13 +25,11 @@ export function SearchResults({
   totalPages,
   onPageChange,
   onSelectMovie,
-  onBack,
 }: SearchResultsProps) {
   const pageCount = Math.min(totalPages, MAX_PAGES)
 
   return (
     <section className="mt-6">
-      <BackButton onClick={onBack} />
       <h2 className="mb-3 text-lg font-semibold text-white">Resultados para "{query}"</h2>
 
       {isLoading && (

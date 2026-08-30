@@ -64,7 +64,6 @@ export function SearchPage() {
       totalPages={totalPages}
       onPageChange={handlePageChange}
       onSelectMovie={(movieId) => navigate(`/filme/${movieId}`)}
-      onBack={() => navigate(-1)}
     />
   )
 }
