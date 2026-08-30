@@ -18,8 +18,6 @@ export function HomePage() {
   useScrollRestoration(!isLoading)
 
   useEffect(() => {
-    let isCancelled = false
-
     async function loadHomeData() {
       setIsLoading(true)
       setError(null)
@@ -29,21 +27,18 @@ export function HomePage() {
           getPopularMovies(),
           getTopRatedMovies(),
         ])
-        if (isCancelled) return
+
         setUpcoming(upcomingResponse.results)
         setPopular(popularResponse.results)
         setTopRated(topRatedResponse.results)
       } catch {
-        if (!isCancelled) setError('Não foi possível carregar os filmes.')
+        setError('Não foi possível carregar os filmes.')
       } finally {
-        if (!isCancelled) setIsLoading(false)
+        setIsLoading(false)
       }
     }
 
     loadHomeData()
-    return () => {
-      isCancelled = true
-    }
   }, [])
 
   const handleSelectMovie = (movieId: number) => {

@@ -8,8 +8,11 @@ export function ScrollMemoryProvider({ children }: { children: ReactNode }) {
   const setScroll = useCallback((key: string, value: number) => {
     scrollMap.current.set(key, value)
   }, [])
+  const clear = useCallback(() => {
+    scrollMap.current.clear()
+  }, [])
 
-  const value = useMemo(() => ({ getScroll, setScroll }), [getScroll, setScroll])
+  const value = useMemo(() => ({ getScroll, setScroll, clear }), [getScroll, setScroll, clear])
 
   return <ScrollMemoryContext.Provider value={value}>{children}</ScrollMemoryContext.Provider>
 }

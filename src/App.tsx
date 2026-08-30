@@ -7,18 +7,18 @@ import { SearchPage } from './pages/SearchPage'
 
 function App() {
   return (
-    <ScrollMemoryProvider>
-      <div className="min-h-screen bg-[#2e3349]">
-        <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
+    <div className="min-h-screen bg-[#2e3349]">
+      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
+        <ScrollMemoryProvider>
           <Header />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/busca" element={<SearchPage />} />
             <Route path="/filme/:id" element={<MovieDetailsPage />} />
           </Routes>
-        </main>
-      </div>
-    </ScrollMemoryProvider>
+        </ScrollMemoryProvider>
+      </main>
+    </div>
   )
 }
 

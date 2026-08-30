@@ -1,3 +1,4 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MovieIcon from '@mui/icons-material/Movie'
 import PersonIcon from '@mui/icons-material/Person'
 import StarIcon from '@mui/icons-material/Star'
@@ -8,6 +9,7 @@ import type { CastMember, MovieDetails as MovieDetailsType } from '../types/movi
 
 interface MovieDetailsProps {
   movieId: number
+  onBack: () => void
 }
 
 const MAX_CAST_MEMBERS = 10
@@ -18,7 +20,7 @@ function formatDate(isoDate: string) {
   return `${day}/${month}/${year}`
 }
 
-export function MovieDetails({ movieId }: MovieDetailsProps) {
+export function MovieDetails({ movieId, onBack }: MovieDetailsProps) {
   const [details, setDetails] = useState<MovieDetailsType | null>(null)
   const [director, setDirector] = useState<string | null>(null)
   const [cast, setCast] = useState<CastMember[]>([])
@@ -57,6 +59,15 @@ export function MovieDetails({ movieId }: MovieDetailsProps) {
 
   return (
     <section className="mt-6">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-blue-400 hover:underline"
+      >
+        <ArrowBackIcon fontSize="small" />
+        Voltar
+      </button>
+
       {isLoading && (
         <div className="flex justify-center py-16">
           <CircularProgress />
