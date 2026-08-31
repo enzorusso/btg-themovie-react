@@ -1,6 +1,6 @@
-# 🎬 Catálogo de Filmes (React)
+# 🎬 Catálogo de Filmes
 
-Versão em React + TypeScript do catálogo de filmes que consome a API do [TMDB](https://developer.themoviedb.org/reference/intro/getting-started). Este README cobre apenas o que já foi implementado — o escopo está sendo construído aos poucos.
+Versão em React + TypeScript do catálogo de filmes que consome a API do [TMDB](https://developer.themoviedb.org/reference/intro/getting-started).
 
 ## O que já existe
 
@@ -9,8 +9,6 @@ Versão em React + TypeScript do catálogo de filmes que consome a API do [TMDB]
 - **Busca** — campo de busca no topo que consulta `GET /search/movie`, lista os resultados em grid e pagina via `page` da própria TMDB (evita carregar tudo de uma vez e travar a tela).
 - **Detalhes do filme** — poster, sinopse, nota, diretor, gêneros, data de lançamento e até 10 atores do elenco, consumindo `GET /movie/{id}` e `GET /movie/{id}/credits`. Acessível clicando em qualquer card (banner, populares ou busca).
 - **Memória de scroll** — o botão "‹ Voltar" na tela de detalhes retorna pra home ou pra busca rolado exatamente onde você deixou (inclusive a posição horizontal de cada carrossel). Já clicar na logo pra ir pra home é um recomeço de verdade: limpa toda essa memória, então a home e os carrosséis voltam pro início.
-
-Ainda não implementado (fora do escopo atual): seções por gênero (ex.: Ação, Comédia via `/discover/movie?with_genres=`), testes.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -28,9 +26,9 @@ Ainda não implementado (fora do escopo atual): seções por gênero (ex.: Açã
 
 | Biblioteca                               | Por que foi usada                                                                                      | Benefícios trazidos                                                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| [MUI](https://mui.com/)                  | Componentes de UI prontos e acessíveis (inputs, botões, ícones, paginação, loading)                    | Agilidade no desenvolvimento sem reinventar componentes básicos, com acessibilidade e consistência visual de fábrica    |
+| [MUI](https://mui.com/)                  | Componentes de UI prontos e acessíveis (inputs, botões, ícones, paginação, loading)                    | Agilidade no desenvolvimento sem reinventar componentes básicos   |
 | [Tailwind CSS](https://tailwindcss.com/) | Utilitários de layout, espaçamento e responsividade direto no JSX, sem escrever CSS repetitivo         | Iteração rápida de UI (grids responsivos, carrosséis, skeletons de loading) com pouco código                            |
-| [React Router](https://reactrouter.com/) | Navegação real entre telas (histórico do navegador, params, query strings), sem reinventar isso na mão | Voltar/avançar nativos, URLs compartilháveis e com refresh, sem precisar de estado manual pra saber "em que tela estou" |
+| [React Router](https://reactrouter.com/) | Navegação real entre telas (histórico do navegador, params, query strings) | Voltar/avançar nativos, URLs compartilháveis e com refresh, sem precisar de estado manual pra saber "em que tela estou" |
 
 ## Pré-requisitos
 
