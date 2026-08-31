@@ -102,6 +102,10 @@ A cobertura foca na lógica que já quebrou pelo menos uma vez ao longo do desen
 - `MovieCarousel` — setas habilitando/desabilitando com base em `scrollWidth`/`clientWidth` mockados (o `jsdom` não faz layout de verdade, então as dimensões do container são simuladas via `Object.defineProperty`), restauração de posição ao montar.
 - `MovieCard`, `SearchResults`, `UpcomingBanner` — renderização condicional (loading/erro/vazio), paginação, autoplay e pausa no hover (com `vi.useFakeTimers()`, escopado só aos testes que precisam — misturar timers falsos com `userEvent.click` trava o teste).
 
+## Deploy
+
+A aplicação está disponível no Vercel [neste link](https://btg-themovie-react.vercel.app/).
+
 ## Rotas
 
 | Rota              | Página             | O que faz                                                                           |
@@ -175,3 +179,4 @@ src/
 - **`GET /movie/{id}/credits` sem `language`.** Diferente dos outros endpoints (que sempre pedem `pt-BR`), a busca de elenco/equipe técnica é feita sem parâmetro de idioma — pedir tradução aqui deixava alguns nomes de ator/diretor bagunçados. `tmdbFetch` aceita uma opção `{ localized: false }` só para esse caso.
 - **`HomePage` monta os carrosséis a partir de uma lista (`carouselSections`)**, em vez de repetir `<MovieCarousel>` uma vez por seção — adicionar uma nova categoria na home (feito para "Melhores Avaliados") é só acrescentar `{ title, movies }` nessa lista.
 - **Testes: `vi.mock` no `useScrollMemory` em vez do `ScrollMemoryProvider` real.** `MovieCarousel` e `useScrollRestoration` dependem do Context de memória de scroll, mas os testes deles mockam o módulo `useScrollMemory` inteiro (`getScroll`/`setScroll` viram `vi.fn()`) em vez de envolver tudo num `<ScrollMemoryProvider>` de verdade. Isso isola cada teste — o comportamento do Provider já tem seu próprio arquivo de teste — e facilita simular casos específicos (`mockGetScroll.mockReturnValue(120)`) sem precisar popular o Map de fora.
+- **Environment:** por mais que não seja ideal e nem seguro, precisei deixar o .env commitado com a key da API, a fim de facilitar/agilizar os testes e o deploy no Vercel.
