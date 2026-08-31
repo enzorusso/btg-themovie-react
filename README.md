@@ -5,21 +5,32 @@ Versão em React + TypeScript do catálogo de filmes que consome a API do [TMDB]
 ## O que já existe
 
 - **Lançamentos** — banner com autoplay (pausa no hover) e indicadores (dots), consumindo `GET /movie/upcoming`.
-- **Populares** e **Melhores Avaliados** — carrosséis horizontais (setas ou arrastando manualmente), consumindo `GET /movie/popular` e `GET /movie/top_rated`.
+- **Populares**, **Melhores Avaliados** e **Filmes Nacionais** — carrosséis horizontais (setas ou arrastando manualmente), consumindo `GET /movie/popular`, `GET /movie/top_rated` e `GET /discover/movie` (`region=BR`). Cada um mostra só a primeira página da TMDB (~20 filmes) — ver [Decisões técnicas](#decisões-técnicas) pra entender por quê.
 - **Busca** — campo de busca no topo que consulta `GET /search/movie`, lista os resultados em grid e pagina via `page` da própria TMDB (evita carregar tudo de uma vez e travar a tela).
 - **Detalhes do filme** — poster, sinopse, nota, diretor, gêneros, data de lançamento e até 10 atores do elenco, consumindo `GET /movie/{id}` e `GET /movie/{id}/credits`. Acessível clicando em qualquer card (banner, populares ou busca).
 - **Memória de scroll** — o botão "‹ Voltar" na tela de detalhes retorna pra home ou pra busca rolado exatamente onde você deixou (inclusive a posição horizontal de cada carrossel). Já clicar na logo pra ir pra home é um recomeço de verdade: limpa toda essa memória, então a home e os carrosséis voltam pro início.
 
 Ainda não implementado (fora do escopo atual): seções por gênero (ex.: Ação, Comédia via `/discover/movie?with_genres=`), testes.
 
-## Stack
+## 🚀 Tecnologias Utilizadas
 
-- [React](https://react.dev/) 19 + TypeScript, via [Vite](https://vite.dev/)
-- [React Router](https://reactrouter.com/) para as rotas (`/`, `/busca`, `/filme/:id`)
-- [MUI](https://mui.com/) para componentes (inputs, botões, ícones, loading)
-- [Tailwind CSS](https://tailwindcss.com/) 4 para layout e estilização
+- [React](https://react.dev/) 19
+- TypeScript
+- [Vite](https://vite.dev/)
+- [React Router](https://reactrouter.com/)
+- [Tailwind CSS](https://tailwindcss.com/) 4
+- [MUI](https://mui.com/)
+- [Prettier](https://prettier.io/)
+- [TheMovieDB API](https://developer.themoviedb.org/reference/intro/getting-started)
 - `fetch` nativo para as chamadas à API (sem axios/react-query)
-- [Prettier](https://prettier.io/) para formatação
+
+### Bibliotecas externas
+
+| Biblioteca                               | Por que foi usada                                                                                      | Benefícios trazidos                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| [MUI](https://mui.com/)                  | Componentes de UI prontos e acessíveis (inputs, botões, ícones, paginação, loading)                    | Agilidade no desenvolvimento sem reinventar componentes básicos, com acessibilidade e consistência visual de fábrica    |
+| [Tailwind CSS](https://tailwindcss.com/) | Utilitários de layout, espaçamento e responsividade direto no JSX, sem escrever CSS repetitivo         | Iteração rápida de UI (grids responsivos, carrosséis, skeletons de loading) com pouco código                            |
+| [React Router](https://reactrouter.com/) | Navegação real entre telas (histórico do navegador, params, query strings), sem reinventar isso na mão | Voltar/avançar nativos, URLs compartilháveis e com refresh, sem precisar de estado manual pra saber "em que tela estou" |
 
 ## Pré-requisitos
 
@@ -63,11 +74,11 @@ npm run format:check   # verifica formatação sem alterar arquivos
 
 ## Rotas
 
-| Rota              | Página             | O que faz                                                         |
-| ----------------- | ------------------ | ----------------------------------------------------------------- |
-| `/`               | `HomePage`         | Lançamentos (banner) + carrosséis (Populares, Melhores Avaliados) |
-| `/busca?q=&page=` | `SearchPage`       | Resultados da busca, `q` e `page` como query params               |
-| `/filme/:id`      | `MovieDetailsPage` | Detalhes do filme (`id` da TMDB)                                  |
+| Rota              | Página             | O que faz                                                                           |
+| ----------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `/`               | `HomePage`         | Lançamentos (banner) + carrosséis (Populares, Melhores Avaliados, Filmes Nacionais) |
+| `/busca?q=&page=` | `SearchPage`       | Resultados da busca, `q` e `page` como query params                                 |
+| `/filme/:id`      | `MovieDetailsPage` | Detalhes do filme (`id` da TMDB)                                                    |
 
 Como funciona:
 
@@ -88,7 +99,7 @@ src/
 │   ├── SearchBar.tsx        # input + botão "Buscar"
 │   ├── SearchResults.tsx    # grid de resultados da busca + paginação
 │   ├── UpcomingBanner.tsx   # banner de lançamentos com autoplay
-│   ├── MovieCarousel.tsx    # carrossel horizontal genérico (Populares, Melhores Avaliados)
+│   ├── MovieCarousel.tsx    # carrossel horizontal genérico (Populares, Melhores Avaliados, Filmes Nacionais)
 │   ├── MovieCard.tsx        # poster + título + nota, clicável
 │   └── MovieDetails.tsx     # conteúdo da tela de detalhes (sinopse, elenco, etc.)
 ├── context/
@@ -124,7 +135,8 @@ src/
 - **Layout responsivo.** O `Header` empilha a logo acima do campo de busca em telas pequenas (`flex-col` até `sm`, `flex-row` a partir daí). No carrossel, o container do scroll tem `min-w-0` — sem isso, um flex item com conteúdo largo pode forçar a linha inteira a estourar a largura da tela em vez de rolar internamente, empurrando as setas pra fora da viewport no mobile. Os cards também encolhem um pouco em telas pequenas (`w-36` → `w-45` a partir de `sm`), e o banner de lançamentos muda de proporção conforme a tela (`aspect-4/3` no mobile → `aspect-video` no tablet → `aspect-21/9` em telas grandes) pra não ficar baixo/espremido demais.
 - **Memória de scroll via Context.** `ScrollMemoryProvider` (em `App.tsx`, por fora das `<Routes>` — não desmonta ao navegar) guarda um `Map<string, number>` em memória, sem depender de nenhuma lib. Dois usos:
   - **Scroll vertical da página** (`useScrollRestoration`, usado em `HomePage`, `SearchPage` e `MovieDetailsPage`): a chave é `page:${location.key}` — o `location.key` do React Router é único por entrada do histórico e se repete quando você volta pra essa mesma entrada (é o mesmo mecanismo por trás do `<ScrollRestoration>` dos data routers). Isso separa naturalmente "navegação nova" (chave nunca vista → `getScroll` retorna `undefined` → rola pro topo) de "voltar" (chave já visitada → restaura a posição salva). A restauração só roda depois que os dados carregaram (`isReady`); em vez de tentar em loop com um número máximo de tentativas, um `ResizeObserver` observa `document.body` e só restaura quando a página realmente cresce o suficiente pra conter a posição salva — com um `setTimeout` de 2s como rede de segurança, caso ela nunca chegue lá (ex.: menos resultados do que antes). Mesmo problema descrito no README da versão Angular, resolvido do mesmo jeito (reagindo a um evento real de layout em vez de um polling arbitrário).
-  - **Scroll horizontal do carrossel** (dentro do próprio `MovieCarousel`, chave `carousel:${title}`): agora que o scroll é finito, é só o `scrollLeft` bruto mesmo — salvo a cada evento de `scroll` e restaurado com `container.scrollLeft = valorSalvo` num `useLayoutEffect` ao montar (roda depois do DOM atualizar mas antes do navegador pintar, então não há flash visível saltando de 0 até a posição salva).
+  - **Scroll horizontal do carrossel** (dentro do próprio `MovieCarousel`, chave `carousel:${title}`): agora que o scroll é finito, é só o `scrollLeft` bruto mesmo — salvo a cada evento de `scroll` e restaurado com `container.scrollLeft = valorSalvo` num `useLayoutEffect` ao montar (roda depois do DOM atualizar mas antes do navegador pintar, então não há flash visível saltando de 0 até a posição salva). O banner de lançamentos (`UpcomingBanner`) não usa essa memória — o slide sempre volta a mostrar o primeiro filme ao remontar.
+- **Paginação do carrossel: só a primeira página da TMDB, de propósito.** Cheguei a implementar carregamento incremental (buscar `page=2`, `page=3`... conforme o usuário rola perto do fim, até um teto de ~100 filmes) — funcionava, mas esbarrou em duas coisas: (1) a TMDB não tem cursor de paginação de verdade, só número de página fixo, então "carregar mais perto do fim" sempre depende de saber em que página exata parou; e (2) a memória de scroll guarda só a posição em pixels (`scrollLeft`), não quantas páginas tinham sido carregadas — voltar de um filme depois de ter rolado fundo (página 3, por exemplo) remontava o carrossel só com a página 1, e a posição salva não fazia mais sentido pro conteúdo disponível naquele momento. Resolver isso direito exigia guardar e restaurar também "quantas páginas carregar de novo antes de repor o scroll", o que não parecia valer a complexidade extra pra esse projeto. Voltamos atrás: cada carrossel mostra só os ~20 resultados da primeira página — menos filmes pra rolar, mas a volta pra posição exata continua simples e confiável.
 - **Botão "Voltar" só na tela de detalhes, logo limpa tudo.** São dois jeitos diferentes de "ir pra home" e cada um se comporta diferente de propósito: o "‹ Voltar" de `MovieDetails` chama `navigate(-1)`, reaproveitando a memória de scroll já salva (`location.key` da entrada anterior é o mesmo de antes, então tudo restaura). Já a logo no `Header` chama `clear()` do `ScrollMemoryProvider` (que esvazia o `Map` inteiro) antes de navegar — um recomeço de verdade, sem herdar nenhuma posição salva, mesmo que a navegação para "/" também gerasse uma chave nova por conta própria (o `clear()` também some com a memória dos carrosséis, que não é por `location.key` e não seria limpa sozinha).
 - **Campo de busca "lembra" o termo fora da tela de busca.** O valor do input não é mais "vazio sempre que a rota não é `/busca`" — ele só é limpo explicitamente ao chegar na home (`isHome`). Em qualquer outra tela (ex.: detalhes de um filme aberto a partir de um resultado de busca), o texto permanece como estava, já que o próprio `SearchBar` nunca desmonta (fica fora das `<Routes>`, dentro do `Header`) e simplesmente não mexe no `value` fora dos casos de "home" e "busca".
   - **Cuidado ao comparar pra decidir se sincroniza:** a primeira versão comparava `value` (o que está digitado) direto com a URL a cada render — como digitar já dispara um re-render, a própria comparação desfazia a digitação letra por letra. A correção guarda a última "rota" já vista (`pathname + q`) e só sincroniza o campo quando essa chave muda de verdade (ou seja, por navegação, não por digitação).
