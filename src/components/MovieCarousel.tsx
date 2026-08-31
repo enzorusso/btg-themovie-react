@@ -1,7 +1,7 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { IconButton } from '@mui/material'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useScrollMemory } from '../hooks/useScrollMemory'
 import type { Movie } from '../types/movie'
 import { MovieCard } from './MovieCard'
@@ -17,23 +17,43 @@ export function MovieCarousel({ title, movies, onSelectMovie }: MovieCarouselPro
   const { getScroll, setScroll } = useScrollMemory()
   const scrollKey = `carousel:${title}`
 
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const updateScrollButtons = useCallback(() => {
+    const container = scrollRef.current
+    if (!container) return
+    setCanScrollLeft(container.scrollLeft > 0)
+    setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth)
+  }, [])
+
+  // restaura a posição de scroll salva ao montar (ex.: voltando de um filme) — sem
+  // scroll-behavior: smooth aqui pra não animar esse salto inicial
   useLayoutEffect(() => {
     const container = scrollRef.current
     if (!container) return
     container.style.scrollBehavior = 'auto'
     container.scrollLeft = getScroll(scrollKey) ?? 0
     container.style.scrollBehavior = ''
-  }, [scrollKey, getScroll])
+    updateScrollButtons()
+  }, [scrollKey, getScroll, updateScrollButtons])
 
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
 
-    const handleScroll = () => setScroll(scrollKey, container.scrollLeft)
+    const handleScroll = () => {
+      setScroll(scrollKey, container.scrollLeft)
+      updateScrollButtons()
+    }
 
     container.addEventListener('scroll', handleScroll)
-    return () => container.removeEventListener('scroll', handleScroll)
-  }, [scrollKey, setScroll])
+    window.addEventListener('resize', updateScrollButtons)
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', updateScrollButtons)
+    }
+  }, [scrollKey, setScroll, updateScrollButtons])
 
   const scrollByViewport = (direction: 1 | -1) => {
     const container = scrollRef.current
@@ -47,7 +67,8 @@ export function MovieCarousel({ title, movies, onSelectMovie }: MovieCarouselPro
       <div className="relative flex items-center gap-1 sm:gap-3">
         <IconButton
           onClick={() => scrollByViewport(-1)}
-          className="shrink-0 cursor-pointer! text-white!"
+          disabled={!canScrollLeft}
+          className="shrink-0 cursor-pointer! text-white! disabled:cursor-default! disabled:opacity-30!"
           aria-label="Rolar para a esquerda"
         >
           <ChevronLeftIcon />
@@ -66,7 +87,8 @@ export function MovieCarousel({ title, movies, onSelectMovie }: MovieCarouselPro
 
         <IconButton
           onClick={() => scrollByViewport(1)}
-          className="shrink-0 cursor-pointer! text-white!"
+          disabled={!canScrollRight}
+          className="shrink-0 cursor-pointer! text-white! disabled:cursor-default! disabled:opacity-30!"
           aria-label="Rolar para a direita"
         >
           <ChevronRightIcon />

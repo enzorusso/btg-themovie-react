@@ -1,7 +1,12 @@
 import { CircularProgress } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPopularMovies, getTopRatedMovies, getUpcomingMovies } from '../api/tmdb'
+import {
+  getPopularMovies,
+  getTopRatedMovies,
+  getUpcomingMovies,
+  getMoviesByRegion,
+} from '../api/tmdb'
 import { MovieCarousel } from '../components/MovieCarousel'
 import { UpcomingBanner } from '../components/UpcomingBanner'
 import { useScrollRestoration } from '../hooks/useScrollRestoration'
@@ -12,6 +17,7 @@ export function HomePage() {
   const [upcoming, setUpcoming] = useState<Movie[]>([])
   const [popular, setPopular] = useState<Movie[]>([])
   const [topRated, setTopRated] = useState<Movie[]>([])
+  const [national, setNational] = useState<Movie[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,15 +28,18 @@ export function HomePage() {
       setIsLoading(true)
       setError(null)
       try {
-        const [upcomingResponse, popularResponse, topRatedResponse] = await Promise.all([
-          getUpcomingMovies(),
-          getPopularMovies(),
-          getTopRatedMovies(),
-        ])
+        const [upcomingResponse, popularResponse, topRatedResponse, nationalResponse] =
+          await Promise.all([
+            getUpcomingMovies(),
+            getPopularMovies(),
+            getTopRatedMovies(),
+            getMoviesByRegion('BR'),
+          ])
 
         setUpcoming(upcomingResponse.results)
         setPopular(popularResponse.results)
         setTopRated(topRatedResponse.results)
+        setNational(nationalResponse.results)
       } catch {
         setError('Não foi possível carregar os filmes.')
       } finally {
@@ -48,6 +57,7 @@ export function HomePage() {
   const carouselSections = [
     { title: 'Populares', movies: popular },
     { title: 'Melhores Avaliados', movies: topRated },
+    { title: 'Filmes Nacionais', movies: national },
   ]
 
   if (isLoading) {

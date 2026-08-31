@@ -51,6 +51,14 @@ export function getMovieCredits(movieId: number) {
   return tmdbFetch<Credits>(`/movie/${movieId}/credits`, {}, { localized: false })
 }
 
+export function getMoviesByRegion(region: string) {
+  return tmdbFetch<TmdbListResponse>('/discover/movie', {
+    region,
+    with_origin_country: region,
+    sort_by: 'popularity.desc',
+  })
+}
+
 export function getPosterUrl(path: string | null, size: 'w200' | 'w342' | 'w500' = 'w342') {
   if (!path) return null
   return `${IMAGE_BASE_URL}${size}${path}`
