@@ -1,6 +1,6 @@
 # 🎬 Catálogo de Filmes
 
-Aplicação front-end desenvolvida em Angular que consome a API pública do [TheMovieDB (TMDB)](https://www.themoviedb.org/documentation/api) para exibir filmes populares, lançamentos e permitir busca e visualização de detalhes.
+Aplicação front-end desenvolvida em React que consome a API pública do [TheMovieDB (TMDB)](https://www.themoviedb.org/documentation/api) para exibir filmes populares, lançamentos e permitir busca e visualização de detalhes.
 
 ---
 
@@ -19,7 +19,7 @@ Este projeto foi desenvolvido como parte de um teste técnico, com o objetivo de
 - ### Diferenciais implementados
 
 - [x] Paginação na listagem de filmes
-- [ ] Testes unitários
+- [x] Testes unitários
 - [ ] Deploy (Vercel / Netlify / GitHub Pages)
 - [x] State Management (Signals)
 - [x] Lazy Loading e modularização
@@ -41,11 +41,11 @@ Este projeto foi desenvolvido como parte de um teste técnico, com o objetivo de
 
 ### Bibliotecas externas
 
-| Biblioteca                               | Por que foi usada                                                                                      | Benefícios trazidos                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| [MUI](https://mui.com/)                  | Componentes de UI prontos e acessíveis (inputs, botões, ícones, paginação, loading)                    | Agilidade no desenvolvimento sem reinventar componentes básicos   |
-| [Tailwind CSS](https://tailwindcss.com/) | Utilitários de layout, espaçamento e responsividade direto no JSX, sem escrever CSS repetitivo         | Iteração rápida de UI (grids responsivos, carrosséis, skeletons de loading) com pouco código                            |
-| [React Router](https://reactrouter.com/) | Navegação real entre telas (histórico do navegador, params, query strings) | Voltar/avançar nativos, URLs compartilháveis e com refresh, sem precisar de estado manual para saber "em que tela estou" |
+| Biblioteca                               | Por que foi usada                                                                              | Benefícios trazidos                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [MUI](https://mui.com/)                  | Componentes de UI prontos e acessíveis (inputs, botões, ícones, paginação, loading)            | Agilidade no desenvolvimento sem reinventar componentes básicos                                                          |
+| [Tailwind CSS](https://tailwindcss.com/) | Utilitários de layout, espaçamento e responsividade direto no JSX, sem escrever CSS repetitivo | Iteração rápida de UI (grids responsivos, carrosséis, skeletons de loading) com pouco código                             |
+| [React Router](https://reactrouter.com/) | Navegação real entre telas (histórico do navegador, params, query strings)                     | Voltar/avançar nativos, URLs compartilháveis e com refresh, sem precisar de estado manual para saber "em que tela estou" |
 
 ## Pré-requisitos
 
@@ -85,7 +85,22 @@ npm run build          # build de produção (tsc + vite build)
 npm run lint           # oxlint
 npm run format         # formata o projeto com prettier
 npm run format:check   # verifica formatação sem alterar arquivos
+npm test               # roda a suíte de testes uma vez (vitest run)
+npm run test:watch     # roda os testes em modo watch
 ```
+
+## Testes
+
+[Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react) + `jsdom`. Os testes ficam ao lado do arquivo testado (`Componente.test.tsx`), exceto os utilitários compartilhados em `src/test/` (`setup.ts` com os matchers do `jest-dom` e os polyfills que o `jsdom` não tem — `ResizeObserver`, `scrollTo`/`scrollBy`; e `factories.ts` com um `createMovie`/`createMovies` pra não repetir um objeto `Movie` inteiro em cada teste).
+
+A cobertura foca na lógica que já quebrou pelo menos uma vez ao longo do desenvolvimento (ver [Decisões técnicas](#decisões-técnicas) — vários dos bugs documentados ali viraram teste de regressão), não em cobertura exaustiva de todo componente:
+
+- `api/tmdb.ts` — parâmetros corretos por endpoint (idioma, `page`, `region`), e a ausência proposital de `language` em `/credits`.
+- `ScrollMemoryProvider`/`useScrollMemory` — get/set/clear por chave.
+- `useScrollRestoration` — só restaura com `isReady`, distingue "chave nova" (rola pro topo) de "chave já visitada" (restaura a posição), e salva a cada scroll.
+- `SearchBar` — a regressão da digitação sendo desfeita a cada tecla, e a matriz de comportamento (limpa na home, sincroniza na busca, mantém nas outras telas).
+- `MovieCarousel` — setas habilitando/desabilitando com base em `scrollWidth`/`clientWidth` mockados (o `jsdom` não faz layout de verdade, então as dimensões do container são simuladas via `Object.defineProperty`), restauração de posição ao montar.
+- `MovieCard`, `SearchResults`, `UpcomingBanner` — renderização condicional (loading/erro/vazio), paginação, autoplay e pausa no hover (com `vi.useFakeTimers()`, escopado só aos testes que precisam — misturar timers falsos com `userEvent.click` trava o teste).
 
 ## Rotas
 
@@ -121,12 +136,15 @@ src/
 │   ├── scrollMemoryContext.ts  # só o Context (sem componente) — Fast Refresh exige separação
 │   └── ScrollMemoryProvider.tsx  # Provider — Map em memória + getScroll/setScroll/clear
 ├── hooks/
-│   ├── useScrollMemory.ts       # acesso tipado ao ScrollMemoryContext
-│   └── useScrollRestoration.ts  # restaura/memoriza o scroll vertical da página
+│   ├── useScrollMemory.ts       # acesso tipado ao ScrollMemoryContext (+ .test.tsx)
+│   └── useScrollRestoration.ts  # restaura/memoriza o scroll vertical da página (+ .test.tsx)
 ├── pages/
 │   ├── HomePage.tsx          # rota "/"
 │   ├── SearchPage.tsx        # rota "/busca" — lê/escreve `q` e `page` na URL
 │   └── MovieDetailsPage.tsx  # rota "/filme/:id"
+├── test/
+│   ├── setup.ts        # matchers do jest-dom + polyfills (ResizeObserver, scrollTo/scrollBy)
+│   └── factories.ts    # createMovie/createMovies pros testes
 ├── theme/
 │   └── theme.ts             # tema dark do MUI
 ├── types/
@@ -156,3 +174,4 @@ src/
   - **Cuidado ao comparar para decidir se sincroniza:** a primeira versão comparava `value` (o que está digitado) direto com a URL a cada render — como digitar já dispara um re-render, a própria comparação desfazia a digitação letra por letra. A correção guarda a última "rota" já vista (`pathname + q`) e só sincroniza o campo quando essa chave muda de verdade (ou seja, por navegação, não por digitação).
 - **`GET /movie/{id}/credits` sem `language`.** Diferente dos outros endpoints (que sempre pedem `pt-BR`), a busca de elenco/equipe técnica é feita sem parâmetro de idioma — pedir tradução aqui deixava alguns nomes de ator/diretor bagunçados. `tmdbFetch` aceita uma opção `{ localized: false }` só para esse caso.
 - **`HomePage` monta os carrosséis a partir de uma lista (`carouselSections`)**, em vez de repetir `<MovieCarousel>` uma vez por seção — adicionar uma nova categoria na home (feito para "Melhores Avaliados") é só acrescentar `{ title, movies }` nessa lista.
+- **Testes: `vi.mock` no `useScrollMemory` em vez do `ScrollMemoryProvider` real.** `MovieCarousel` e `useScrollRestoration` dependem do Context de memória de scroll, mas os testes deles mockam o módulo `useScrollMemory` inteiro (`getScroll`/`setScroll` viram `vi.fn()`) em vez de envolver tudo num `<ScrollMemoryProvider>` de verdade. Isso isola cada teste — o comportamento do Provider já tem seu próprio arquivo de teste — e facilita simular casos específicos (`mockGetScroll.mockReturnValue(120)`) sem precisar popular o Map de fora.
